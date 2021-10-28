@@ -9,6 +9,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"vos3000"
 )
 
@@ -26,7 +27,7 @@ func main() {
 	errs := vos3000.SyncGatewayObject("127.0.0.1:8080",
 		[]string{"127.0.0.1:8081", "127.0.0.1:8082"},
 		vos3000.SYNC_ROUTING,
-		func(gw *vos3000.GatewayObject) bool { return true })
+		func(gw *vos3000.GatewayObject) bool { return strings.Contains((*gw)["name"].(string), "") })
 	if len(errs) != 0 {
 		fmt.Printf("sync errors: %v\n", errs)
 	}

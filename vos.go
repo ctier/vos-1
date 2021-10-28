@@ -56,6 +56,7 @@ type APIResult struct {
 type GatewayObject map[string]interface{}
 
 func (g *GatewayObject) Diff(dstGwObj *GatewayObject) (diffObj *GatewayObject) {
+	diffObj = &GatewayObject{}
 	for k1, v1 := range *g {
 		v2, ok := (*dstGwObj)[k1]
 		if !ok || !reflect.DeepEqual(v1, v2) {
@@ -208,9 +209,9 @@ func SyncGatewayObject(srcServer string, dstServers []string, syncType SyncType,
 				diffObj := srcGwObj.Diff(&dstGwObj)
 				if len(*diffObj) != 0 {
 					if syncType == SYNC_MAPPING {
-						err = ChangeGatewayObject(dstServer, MODIFY_MAPPING, &srcGwObj)
+						err = ChangeGatewayObject(dstServer, MODIFY_MAPPING, diffObj)
 					} else if syncType == SYNC_ROUTING {
-						err = ChangeGatewayObject(dstServer, MODIFY_ROUTING, &srcGwObj)
+						err = ChangeGatewayObject(dstServer, MODIFY_ROUTING, diffObj)
 					}
 					errs = append(errs, err)
 				}
