@@ -30,7 +30,13 @@ func main() {
 		func(gw *vos3000.GatewayObject) bool {
 			return strings.Contains((*gw)["name"].(string), "")
 		},
-		func(name string) bool { return name == "calleeAllowLength" })
+		func(name string) bool { return name == "calleeAllowLength" },
+		func(name string) interface{} {
+			if name == "callinCallerPrefixes" {
+				return "123211323"
+			}
+			return nil
+		})
 	if len(errs) != 0 {
 		fmt.Printf("sync errors: %v\n", errs)
 	}
