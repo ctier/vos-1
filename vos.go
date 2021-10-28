@@ -55,9 +55,12 @@ type APIResult struct {
 
 type GatewayObject map[string]interface{}
 
-func (g *GatewayObject) Diff(dstGwObj *GatewayObject) (diffObj *GatewayObject) {
+func (g *GatewayObject) Diff(dstGwObj *GatewayObject, attrIgnoredFunc func(name string) bool) (diffObj *GatewayObject) {
 	diffObj = &GatewayObject{}
 	for k1, v1 := range *g {
+		if attrIgnoredFunc != nil && attrIgnoredFunc(k1) {
+			continue
+		}
 		v2, ok := (*dstGwObj)[k1]
 		if !ok || !reflect.DeepEqual(v1, v2) {
 			(*diffObj)[k1] = v1
@@ -170,7 +173,7 @@ func ChangeGatewayObject(server string, action ChangeType, gwObj *GatewayObject)
 }
 
 // SyncGatewayObject 同步指定项配置到其他设备
-func SyncGatewayObject(srcServer string, dstServers []string, syncType SyncType, filterFunc func(gw *GatewayObject) bool) (errs []error) {
+func SyncGatewayObject(srcServer string, dstServers []string, syncType SyncType, objectIgnoredFunc func(gw *GatewayObject) bool, attrIgnoredFunc func(name string) bool) (errs []error) {
 	srcGwObjs, err := GetGatewayObject(srcServer, GetType(syncType))
 	if err != nil {
 		errs = append(errs, err)
@@ -179,7 +182,7 @@ func SyncGatewayObject(srcServer string, dstServers []string, syncType SyncType,
 	toNameObjectMap := func(gwObjs *[]GatewayObject) map[string]GatewayObject {
 		ret := make(map[string]GatewayObject)
 		for _, gwObj := range *gwObjs {
-			if filterFunc(&gwObj) {
+			if objectIgnoredFunc(&gwObj) {
 				ret[gwObj["name"].(string)] = gwObj
 			}
 		}
@@ -206,7 +209,7 @@ func SyncGatewayObject(srcServer string, dstServers []string, syncType SyncType,
 				}
 				errs = append(errs, err)
 			} else {
-				diffObj := srcGwObj.Diff(&dstGwObj)
+				diffObj := srcGwObj.Diff(&dstGwObj, attrIgnoredFunc)
 				if len(*diffObj) != 0 {
 					if syncType == SYNC_MAPPING {
 						err = ChangeGatewayObject(dstServer, MODIFY_MAPPING, diffObj)

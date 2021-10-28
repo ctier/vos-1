@@ -27,7 +27,10 @@ func main() {
 	errs := vos3000.SyncGatewayObject("127.0.0.1:8080",
 		[]string{"127.0.0.1:8081", "127.0.0.1:8082"},
 		vos3000.SYNC_ROUTING,
-		func(gw *vos3000.GatewayObject) bool { return strings.Contains((*gw)["name"].(string), "") })
+		func(gw *vos3000.GatewayObject) bool {
+			return strings.Contains((*gw)["name"].(string), "")
+		},
+		func(name string) bool { return name == "calleeAllowLength" })
 	if len(errs) != 0 {
 		fmt.Printf("sync errors: %v\n", errs)
 	}
